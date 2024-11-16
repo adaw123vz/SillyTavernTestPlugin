@@ -31,10 +31,7 @@ function registerFunctionTools() {
         const context = getContext();
         const { registerFunctionTool } = context;
 
-        if (!registerFunctionTool) {
-            console.debug('SillyTavernTestPlugin: Функции вызова не поддерживаются');
-            return;
-        }
+        console.log(context, registerFunctionTool);
 
         console.log('SillyTavernTestPlugin: Начало регистрации функции вызова "GetRandomWord"');
 

@@ -24,6 +24,12 @@ function registerFunctionTools() {
         const context = getContext();
         console.log(`[${MODULE_NAME}] Получение контекста:`, context);
 
+if (context.isToolCallingSupported()) {
+    console.log("Function tool calling is supported");
+} else {
+    console.log("Function tool calling is not supported");
+}
+
         const { registerFunctionTool } = context;
         if (!registerFunctionTool) {
             console.warn(`[${MODULE_NAME}] Функции вызова не поддерживаются в текущем контексте.`);

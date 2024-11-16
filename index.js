@@ -11,6 +11,9 @@ import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '
 import { commonEnumProviders } from '../../../slash-commands/SlashCommandCommonEnumsProvider.js';
 import { animation_duration } from '../../../../script.js';
 
+
+import { ToolManager } from '../../../tool-calling.js';
+
 const MODULE_NAME = 'SillyTavernTestPlugin';
 
 /**
@@ -32,21 +35,8 @@ async function getRandomWord() {
 function registerFunctionTools() {
     try {
         
-        
-        const context = SillyTavern.getContext();
-        
-        console.log(context);
-        
-        const { isToolCallingSupported, registerFunctionTool } = context;
-
-        
-        console.log(isToolCallingSupported, registerFunctionTool);
-        
-    if (typeof isToolCallingSupported !== 'function') {
-        console.log('SillyTavernTestPlugin: tool calling is not supported');
-        return false;
-    } 
-
+         
+         
 
         console.log('SillyTavernTestPlugin: Начало регистрации функции вызова "GetRandomWord"');
 
@@ -62,7 +52,7 @@ function registerFunctionTools() {
             required: ['requester']
         };
 
-        registerFunctionTool({
+        ToolManager.registerFunctionTool({
             name: 'GetRandomWord',
             displayName: 'Получить случайное слово',
             description: 'Возвращает одно из пяти предопределённых слов. Используйте, когда нужно получить случайное кодовое слово.',

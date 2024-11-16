@@ -1,12 +1,14 @@
-import { animation_duration } from '../../../../script.js';
-import { getContext } from '../../../extensions.js';
-import { POPUP_TYPE, callGenericPopup } from '../../../popup.js';
+import { appendMediaToMessage, extension_prompt_types, getRequestHeaders, saveSettingsDebounced, setExtensionPrompt, substituteParamsExtended } from '../../../../script.js';
+import { appendFileContent, uploadFileAttachment } from '../../../chats.js';
+import { doExtrasFetch, extension_settings, getApiUrl, getContext, modules, renderExtensionTemplateAsync } from '../../../extensions.js';
+import { registerDebugFunction } from '../../../power-user.js';
+import { SECRET_KEYS, secret_state, writeSecret } from '../../../secrets.js';
+import { POPUP_RESULT, POPUP_TYPE, callGenericPopup } from '../../../popup.js';
+import { extractTextFromHTML, isFalseBoolean, isTrueBoolean, onlyUnique, trimToEndSentence, trimToStartSentence, getStringHash, regexFromString } from '../../../utils.js';
+import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js';
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js';
 import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '../../../slash-commands/SlashCommandArgument.js';
 import { commonEnumProviders } from '../../../slash-commands/SlashCommandCommonEnumsProvider.js';
-import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js';
-import { isTrueBoolean } from '../../../utils.js';
-export { MODULE_NAME };
 
 const MODULE_NAME = 'SillyTavernTestPlugin';
 

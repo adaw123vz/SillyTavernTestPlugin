@@ -28,10 +28,22 @@ async function getRandomWord() {
  */
 function registerFunctionTools() {
     try {
-        const context = getContext();
-        const { registerFunctionTool } = context;
+        
+        
+        const context = SillyTavern.getContext();
+        
+        console.log(context);
+        
+        const { isToolCallingSupported, registerFunctionTool } = context;
 
-        console.log(context, registerFunctionTool);
+        
+        console.log(isToolCallingSupported, registerFunctionTool);
+        
+    if (typeof isToolCallingSupported !== 'function') {
+        console.log('SillyTavernTestPlugin: tool calling is not supported');
+        return false;
+    } 
+
 
         console.log('SillyTavernTestPlugin: Начало регистрации функции вызова "GetRandomWord"');
 

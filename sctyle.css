@@ -1,0 +1,13 @@
+#create_binding_dropdown {
+    z-index: 30000;
+    backdrop-filter: blur(var(--SmartThemeBlurStrength, 10px));
+}
+
+#roll_dice, #create_binding_button {
+    cursor: pointer;
+}
+
+#roll_dice.disabled, #create_binding_button.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}

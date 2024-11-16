@@ -1,4 +1,7 @@
 import { getContext } from '../../../extensions.js';
+import { animation_duration } from '../../../../script.js';
+import Popper from 'popper.js'; // Убедитесь, что Popper доступен
+import $ from 'jquery'; // Убедитесь, что jQuery доступен
 
 export { MODULE_NAME };
 
@@ -11,32 +14,16 @@ const MODULE_NAME = 'SillyTavernTestPlugin';
 async function getRandomWord() {
     const words = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo'];
     const randomIndex = Math.floor(Math.random() * words.length);
-    const selectedWord = words[randomIndex];
-    console.log(`[${MODULE_NAME}] getRandomWord: Выбрано слово "${selectedWord}"`);
-    return selectedWord;
+    return words[randomIndex];
 }
 
-/**
- * Регистрирует функцию вызова в контексте Silly Tavern.
- */
 function registerFunctionTools() {
     try {
-        const context = getContext();
-        console.log(`[${MODULE_NAME}] Получение контекста:`, context);
-
-if (context.isToolCallingSupported()) {
-    console.log("Function tool calling is supported");
-} else {
-    console.log("Function tool calling is not supported");
-}
-
-        const { registerFunctionTool } = context;
+        const { registerFunctionTool } = getContext();
         if (!registerFunctionTool) {
-            console.warn(`[${MODULE_NAME}] Функции вызова не поддерживаются в текущем контексте.`);
+            console.debug('SillyTavernTestPlugin: Функции вызова не поддерживаются');
             return;
         }
-
-        console.log(`[${MODULE_NAME}] Регистрируем функцию вызова "GetRandomWord"...`);
 
         const randomWordSchema = {
             $schema: 'http://json-schema.org/draft-04/schema#',
@@ -56,30 +43,77 @@ if (context.isToolCallingSupported()) {
             description: 'Возвращает одно из пяти предопределённых слов. Используйте, когда нужно получить случайное кодовое слово.',
             parameters: randomWordSchema,
             action: async (args) => {
-                console.log(`[${MODULE_NAME}] Функция "GetRandomWord" вызвана с аргументами:`, args);
-                try {
-                    const word = await getRandomWord();
-                    console.log(`[${MODULE_NAME}] Функция "GetRandomWord" вернула: "${word}"`);
-                    return word;
-                } catch (error) {
-                    console.error(`[${MODULE_NAME}] Ошибка при выполнении "GetRandomWord":`, error);
-                    return 'Ошибка при получении случайного слова.';
-                }
+                const word = await getRandomWord();
+                return word;
             },
             formatMessage: ({ requester }) => {
-                const message = `${requester} запросил случайное слово.`;
-                console.log(`[${MODULE_NAME}] formatMessage: "${message}"`);
-                return message;
+                return `${requester} запросил случайное слово.`;
             }
         });
 
-        console.log(`[${MODULE_NAME}] Функция вызова "GetRandomWord" успешно зарегистрирована.`);
+        console.log('SillyTavernTestPlugin: Функция вызова "GetRandomWord" успешно зарегистрирована.');
     } catch (error) {
-        console.error(`[${MODULE_NAME}] Ошибка при регистрации функции вызова:`, error);
+        console.error('SillyTavernTestPlugin: Ошибка при регистрации функций вызова', error);
     }
 }
 
+function addCreateBindingButton() {
+    const buttonHtml = `
+        <div id="create_binding_button" class="list-group-item flex-container flexGap5">
+            <div class="fa-solid fa-link extensionsMenuExtensionButton" title="Создать привязку"></div>
+            Создать привязку
+        </div>
+    `;
+
+    const dropdownHtml = `
+        <div id="create_binding_dropdown">
+            <ul class="list-group">
+                <li class="list-group-item" id="confirm_create_binding">Подтвердить создание привязки</li>
+                <li class="list-group-item" id="cancel_create_binding">Отмена</li>
+            </ul>
+        </div>
+    `;
+
+    const getMenuContainer = () => $(document.getElementById('bindings_menu_container') ?? document.getElementById('extensionsMenu'));
+    getMenuContainer().append(buttonHtml);
+
+    $(document.body).append(dropdownHtml);
+    const button = $('#create_binding_button');
+    const dropdown = $('#create_binding_dropdown');
+    dropdown.hide();
+
+    let popper = Popper.createPopper(button.get(0), dropdown.get(0), {
+        placement: 'bottom',
+    });
+
+    $('#create_binding_dropdown #confirm_create_binding').on('click', function () {
+        registerFunctionTools();
+        dropdown.fadeOut(animation_duration);
+        toastr.success('Привязка успешно создана!');
+        // Отключаем кнопку после создания привязки
+        button.off('click');
+        button.css('opacity', '0.5');
+        button.find('div').attr('title', 'Привязка уже создана');
+    });
+
+    $('#create_binding_dropdown #cancel_create_binding').on('click', function () {
+        dropdown.fadeOut(animation_duration);
+    });
+
+    $(document).on('click touchend', function (e) {
+        const target = $(e.target);
+        if (target.is(dropdown) || target.closest(dropdown).length) return;
+        if (target.is(button) && !dropdown.is(':visible')) {
+            e.preventDefault();
+
+            dropdown.fadeIn(animation_duration);
+            popper.update();
+        } else {
+            dropdown.fadeOut(animation_duration);
+        }
+    });
+}
+
 jQuery(function () {
-    console.log(`[${MODULE_NAME}] Загрузка расширения...`);
-    registerFunctionTools();
+    addCreateBindingButton();
 });

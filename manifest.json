@@ -1,0 +1,13 @@
+{
+    "display_name": "SillyTavernTestPlugin",
+    "loading_order": 10,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "ВашеИмя#1234",
+    "version": "1.0.0",
+    "homePage": "https://github.com/adaw123vz/SillyTavernTestPlugin",
+    "auto_update": true
+}
+

@@ -6,9 +6,6 @@ import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '
 import { commonEnumProviders } from '../../../slash-commands/SlashCommandCommonEnumsProvider.js';
 import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js';
 import { isTrueBoolean } from '../../../utils.js';
-import Popper from 'popper.js';
-import $ from 'jquery';
-
 export { MODULE_NAME };
 
 const MODULE_NAME = 'SillyTavernTestPlugin';

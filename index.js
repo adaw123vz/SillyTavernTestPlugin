@@ -1,10 +1,4 @@
 import { getContext } from '../../../extensions.js';
-import { SlashCommand } from '../../../slash-commands/SlashCommand.js';
-import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '../../../slash-commands/SlashCommandArgument.js';
-import { commonEnumProviders } from '../../../slash-commands/SlashCommandCommonEnumsProvider.js';
-import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js';
-import { isTrueBoolean } from '../../../utils.js';
-import { POPUP_TYPE, callGenericPopup } from '../../../popup.js';
 
 export { MODULE_NAME };
 
@@ -17,19 +11,26 @@ const MODULE_NAME = 'SillyTavernTestPlugin';
 async function getRandomWord() {
     const words = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo'];
     const randomIndex = Math.floor(Math.random() * words.length);
-    return words[randomIndex];
+    const selectedWord = words[randomIndex];
+    console.log(`[${MODULE_NAME}] getRandomWord: Выбрано слово "${selectedWord}"`);
+    return selectedWord;
 }
 
 /**
- * Регистрирует функцию вызова и добавляет кнопку в интерфейс.
+ * Регистрирует функцию вызова в контексте Silly Tavern.
  */
 function registerFunctionTools() {
     try {
-        const { registerFunctionTool } = getContext();
+        const context = getContext();
+        console.log(`[${MODULE_NAME}] Получение контекста:`, context);
+
+        const { registerFunctionTool } = context;
         if (!registerFunctionTool) {
-            console.debug('SillyTavernTestPlugin: Функции вызова не поддерживаются');
+            console.warn(`[${MODULE_NAME}] Функции вызова не поддерживаются в текущем контексте.`);
             return;
         }
+
+        console.log(`[${MODULE_NAME}] Регистрируем функцию вызова "GetRandomWord"...`);
 
         const randomWordSchema = {
             $schema: 'http://json-schema.org/draft-04/schema#',
@@ -49,108 +50,30 @@ function registerFunctionTools() {
             description: 'Возвращает одно из пяти предопределённых слов. Используйте, когда нужно получить случайное кодовое слово.',
             parameters: randomWordSchema,
             action: async (args) => {
-                const word = await getRandomWord();
-                return word;
+                console.log(`[${MODULE_NAME}] Функция "GetRandomWord" вызвана с аргументами:`, args);
+                try {
+                    const word = await getRandomWord();
+                    console.log(`[${MODULE_NAME}] Функция "GetRandomWord" вернула: "${word}"`);
+                    return word;
+                } catch (error) {
+                    console.error(`[${MODULE_NAME}] Ошибка при выполнении "GetRandomWord":`, error);
+                    return 'Ошибка при получении случайного слова.';
+                }
             },
             formatMessage: ({ requester }) => {
-                return `${requester} запросил случайное слово.`;
+                const message = `${requester} запросил случайное слово.`;
+                console.log(`[${MODULE_NAME}] formatMessage: "${message}"`);
+                return message;
             }
         });
 
-        // Добавление кнопки в интерфейс
-        addGetWordButton();
-        // Регистрация команды
-        registerGetWordCommand();
-
+        console.log(`[${MODULE_NAME}] Функция вызова "GetRandomWord" успешно зарегистрирована.`);
     } catch (error) {
-        console.error('SillyTavernTestPlugin: Ошибка при регистрации функций вызова', error);
+        console.error(`[${MODULE_NAME}] Ошибка при регистрации функции вызова:`, error);
     }
-}
-
-/**
- * Добавляет кнопку "Получить слово" в меню расширений.
- */
-function addGetWordButton() {
-    const buttonHtml = `
-        <div id="get_word_button" class="list-group-item flex-container flexGap5">
-            <div class="fa-solid fa-random extensionsMenuExtensionButton" title="Получить слово"></div>
-            Получить слово
-        </div>
-    `;
-    const dropdownHtml = `
-        <div id="get_word_dropdown">
-            <ul class="list-group">
-                <li class="list-group-item" data-action="getword">Получить случайное слово</li>
-            </ul>
-        </div>
-    `;
-
-    const getMenuContainer = () => $(document.getElementById('extensionsMenu') || document.getElementById('extensionsMenuContainer'));
-    getMenuContainer().append(buttonHtml);
-    $(document.body).append(dropdownHtml);
-
-    $('#get_word_dropdown li').on('click', function () {
-        $('#get_word_dropdown').fadeOut(200);
-        invokeGetRandomWord();
-    });
-
-    const button = $('#get_word_button');
-    const dropdown = $('#get_word_dropdown');
-    dropdown.hide();
-
-    let popper = Popper.createPopper(button.get(0), dropdown.get(0), {
-        placement: 'bottom-start',
-    });
-
-    $(document).on('click touchend', function (e) {
-        const target = $(e.target);
-        if (target.is(dropdown) || target.closest(dropdown).length) return;
-        if (target.is(button) && !dropdown.is(':visible')) {
-            e.preventDefault();
-            dropdown.fadeIn(200);
-            popper.update();
-        } else {
-            dropdown.fadeOut(200);
-        }
-    });
-}
-
-/**
- * Вызывает функцию GetRandomWord через контекст.
- */
-async function invokeGetRandomWord() {
-    const context = getContext();
-    const requester = context.name1 || 'Пользователь';
-    try {
-        const result = await context.callFunctionTool('GetRandomWord', { requester });
-        if (result) {
-            context.sendSystemMessage('generic', `Случайное кодовое слово: **${result}**`, { isSmallSys: true });
-        } else {
-            context.sendSystemMessage('generic', `Не удалось получить случайное слово.`, { isSmallSys: true });
-        }
-    } catch (error) {
-        console.error('SillyTavernTestPlugin: Ошибка при вызове функции GetRandomWord', error);
-        context.sendSystemMessage('generic', `Произошла ошибка при получении случайного слова.`, { isSmallSys: true });
-    }
-}
-
-/**
- * Регистрирует команду /getword для вызова функции получения случайного слова.
- */
-function registerGetWordCommand() {
-    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
-        name: 'getword',
-        aliases: ['gw'],
-        callback: async (args, value) => {
-            return await invokeGetRandomWord();
-        },
-        helpString: 'Получить случайное кодовое слово.',
-        returns: 'случайное слово',
-        namedArgumentList: [],
-        unnamedArgumentList: []
-    }));
 }
 
 jQuery(function () {
+    console.log(`[${MODULE_NAME}] Загрузка расширения...`);
     registerFunctionTools();
 });
